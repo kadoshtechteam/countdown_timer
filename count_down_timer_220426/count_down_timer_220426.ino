@@ -9,7 +9,6 @@ const int increase = D5;
 const int decrease = D6;
 const int startBtn = D7;
 const int resetBtn = D0;
-
 const int buzzer = D1;  // Buzzer pin
 
 int defaultTime = 40; // minutes
@@ -167,8 +166,6 @@ void handleResetButton() {
         digitalWrite(buzzer, LOW);
       }
       defaultTime = 40;
-      currentMinutes = 40;
-      currentSeconds = 0;
       displayTime(defaultTime, 0);
       delay(200);
       
@@ -190,7 +187,7 @@ void handleStartButton() {
       if (!timerRunning && defaultTime > 0) {
         timerRunning = true;
         currentMinutes = defaultTime;
-        currentSeconds = 0;
+        currentSeconds = 0;  // Start at 0 seconds
         lastTimerUpdate = millis();
       }
       
@@ -212,6 +209,7 @@ void handleTimer() {
     if (currentTime - lastTimerUpdate >= 1000) {
       lastTimerUpdate = currentTime;
       
+      // Decrement logic: go from MM:00 to MM-1:59
       if (currentSeconds == 0) {
         if (currentMinutes > 0) {
           currentMinutes--;
@@ -219,13 +217,13 @@ void handleTimer() {
         } else {
           // Timer finished
           timerRunning = false;
-          digitalWrite(buzzer, HIGH);
-          delay(1000);
-          digitalWrite(buzzer, LOW);
-          delay(500);
-          digitalWrite(buzzer, HIGH);
-          delay(1000);
-          digitalWrite(buzzer, LOW);
+          // Beep pattern for timer end
+          for (int i = 0; i < 3; i++) {
+            digitalWrite(buzzer, HIGH);
+            delay(500);
+            digitalWrite(buzzer, LOW);
+            delay(300);
+          }
           return;
         }
       } else {
@@ -234,7 +232,7 @@ void handleTimer() {
       
       displayTime(currentMinutes, currentSeconds);
       
-      // Beep for last 10 seconds
+      // Beep for last 10 seconds (when minutes = 0 and seconds <= 10)
       if (currentMinutes == 0 && currentSeconds <= 10 && currentSeconds > 0) {
         digitalWrite(buzzer, HIGH);
         delay(100);
